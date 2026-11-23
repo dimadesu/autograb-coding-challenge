@@ -5,12 +5,25 @@ import type {
   VehicleCatalog,
   VehiclePreset,
 } from '../types.ts';
-import { validateLogbookFile } from '../utils/fileValidation.ts';
 import { ErrorAlert } from './ErrorAlert.tsx';
 import { LogbookUpload } from './LogbookUpload.tsx';
 import { QuickSelect } from './QuickSelect.tsx';
 import { VehicleSelector } from './VehicleSelector.tsx';
 import './VehicleLogbookForm.css';
+
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+const GENERIC_MIME_TYPES = new Set(['', 'application/octet-stream']);
+
+function validateLogbookFile(file: File): string | null {
+  const mime = (file.type || '').toLowerCase();
+  if (!mime.startsWith('text/') && !GENERIC_MIME_TYPES.has(mime)) {
+    return 'Please attach a plain text logbook file.';
+  }
+  if (file.size > MAX_FILE_SIZE_BYTES) {
+    return 'Logbook file must be 5 MB or smaller.';
+  }
+  return null;
+}
 
 interface VehicleLogbookFormProps {
   vehicles: VehicleCatalog;
