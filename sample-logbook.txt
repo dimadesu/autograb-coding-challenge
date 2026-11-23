@@ -1,0 +1,17 @@
+Vehicle Service Logbook
+=======================
+
+2024-03-10 | 15,000 km | Scheduled 15k service
+- Engine oil and filter replaced
+- Brake pads and rotors inspected (OK)
+- Tyre rotation and pressure check
+
+2024-09-18 | 30,000 km | Scheduled 30k service
+- Engine oil, oil filter, and cabin air filter replaced
+- Wheel alignment performed
+- Battery health test passed
+
+2025-04-02 | 45,000 km | Scheduled 45k service
+- Engine oil and filter replaced
+- Brake fluid flushed and replaced
+- Wiper blades replaced

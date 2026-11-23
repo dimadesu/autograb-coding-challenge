@@ -112,4 +112,114 @@ describe('API endpoints', () => {
     assert.equal(body.logbook.fileName, 'ranger-logbook.txt');
     assert.equal(body.logbook.content, logbookText);
   });
+
+  it('POST /api/submissions accepts plain text files with .log or no extension', async () => {
+    for (const fileName of ['service.log', 'logbook']) {
+      const form = new FormData();
+      form.append('make', 'ford');
+      form.append('model', 'Ranger');
+      form.append('badge', 'Raptor');
+      form.append(
+        'logbook',
+        new Blob(['Service entry'], { type: 'application/octet-stream' }),
+        fileName,
+      );
+
+      const res = await fetch(`${baseUrl}/api/submissions`, {
+        method: 'POST',
+        body: form,
+      });
+
+      assert.equal(res.status, 200);
+      const body = await res.json();
+      assert.equal(body.logbook.fileName, fileName);
+      assert.equal(body.logbook.content, 'Service entry');
+    }
+  });
+
+  it('POST /api/submissions rejects binary files renamed to .txt', async () => {
+    const binaryBytes = new Uint8Array([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0xff,
+    ]);
+    const form = new FormData();
+    form.append('make', 'ford');
+    form.append('model', 'Ranger');
+    form.append('badge', 'Raptor');
+    form.append(
+      'logbook',
+      new Blob([binaryBytes], { type: 'text/plain' }),
+      'fake.txt',
+    );
+
+    const res = await fetch(`${baseUrl}/api/submissions`, {
+      method: 'POST',
+      body: form,
+    });
+
+    assert.equal(res.status, 400);
+    const body = await res.json();
+    assert.match(body.error, /valid utf-8 plain text/i);
+  });
+
+  it('POST /api/submissions allows empty (0-byte) plain text files', async () => {
+    const form = new FormData();
+    form.append('make', 'ford');
+    form.append('model', 'Ranger');
+    form.append('badge', 'Raptor');
+    form.append('logbook', new Blob([], { type: 'text/plain' }), 'empty.txt');
+
+    const res = await fetch(`${baseUrl}/api/submissions`, {
+      method: 'POST',
+      body: form,
+    });
+
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.equal(body.logbook.size, 0);
+    assert.equal(body.logbook.content, '');
+  });
+
+  it('POST /api/submissions rejects files larger than 5 MB', async () => {
+    const oversized = 'a'.repeat(5 * 1024 * 1024 + 1);
+    const form = new FormData();
+    form.append('make', 'ford');
+    form.append('model', 'Ranger');
+    form.append('badge', 'Raptor');
+    form.append(
+      'logbook',
+      new Blob([oversized], { type: 'text/plain' }),
+      'huge.txt',
+    );
+
+    const res = await fetch(`${baseUrl}/api/submissions`, {
+      method: 'POST',
+      body: form,
+    });
+
+    assert.equal(res.status, 400);
+    const body = await res.json();
+    assert.match(body.error, /file too large/i);
+  });
+
+  it('POST /api/submissions rejects duplicate vehicle fields', async () => {
+    const form = new FormData();
+    form.append('make', 'ford');
+    form.append('make', 'bmw');
+    form.append('model', 'Ranger');
+    form.append('badge', 'Raptor');
+    form.append(
+      'logbook',
+      new Blob(['Service entry'], { type: 'text/plain' }),
+      'logbook.txt',
+    );
+
+    const res = await fetch(`${baseUrl}/api/submissions`, {
+      method: 'POST',
+      body: form,
+    });
+
+    assert.equal(res.status, 400);
+    const body = await res.json();
+    assert.ok(body.error);
+  });
 });

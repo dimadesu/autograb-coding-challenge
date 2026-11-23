@@ -6,6 +6,27 @@ const MAKE_LABELS = {
   tesla: 'Tesla',
 };
 
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+const ALLOWED_TEXT_EXTENSIONS = new Set(['.txt', '.log', '.md', '.csv', '']);
+const GENERIC_MIME_TYPES = new Set(['', 'application/octet-stream']);
+
+function getFileExtension(fileName) {
+  const lastDot = fileName.lastIndexOf('.');
+  if (lastDot <= 0) {
+    return '';
+  }
+  return fileName.slice(lastDot).toLowerCase();
+}
+
+function isAllowedPlainTextFile(file) {
+  const mime = (file.type || '').toLowerCase();
+  if (mime.startsWith('text/')) {
+    return true;
+  }
+  const ext = getFileExtension(file.name);
+  return GENERIC_MIME_TYPES.has(mime) && ALLOWED_TEXT_EXTENSIONS.has(ext);
+}
+
 function formatMake(make) {
   if (Object.hasOwn(MAKE_LABELS, make)) {
     return MAKE_LABELS[make];
@@ -105,12 +126,14 @@ export default function App() {
     setResult(null);
 
     if (selected) {
-      const isPlainText =
-        selected.type === 'text/plain' ||
-        selected.name.toLowerCase().endsWith('.txt');
-      if (!isPlainText) {
+      if (!isAllowedPlainTextFile(selected)) {
         clearFileSelection();
-        setSubmitError('Please attach a plain text (.txt) logbook file.');
+        setSubmitError('Please attach a plain text logbook file.');
+        return;
+      }
+      if (selected.size > MAX_FILE_SIZE_BYTES) {
+        clearFileSelection();
+        setSubmitError('Logbook file must be 5 MB or smaller.');
         return;
       }
     }
@@ -129,7 +152,7 @@ export default function App() {
     }
 
     if (!logbookFile) {
-      setSubmitError('Please attach your service logbook (.txt file).');
+      setSubmitError('Please attach your service logbook (plain text file).');
       return;
     }
 
@@ -235,11 +258,11 @@ export default function App() {
           {badge && (
             <div className="upload-section">
               <label className="field">
-                <span>Service Logbook (.txt)</span>
+                <span>Service Logbook (plain text)</span>
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".txt,text/plain"
+                  accept="text/plain,.txt,.log"
                   onChange={handleFileChange}
                   required
                 />
@@ -283,7 +306,11 @@ export default function App() {
             </div>
           </dl>
           <h3>Logbook Contents</h3>
-          <pre className="logbook-content">{result.logbook.content}</pre>
+          <pre className="logbook-content">
+            {result.logbook.content.length > 0
+              ? result.logbook.content
+              : '(Empty file)'}
+          </pre>
         </section>
       )}
     </main>

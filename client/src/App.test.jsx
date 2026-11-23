@@ -129,9 +129,87 @@ describe('App', () => {
     await user.upload(fileInput, pdfFile);
 
     expect(screen.getByRole('alert')).toHaveTextContent(
-      /please attach a plain text \(\.txt\) logbook file/i,
+      /please attach a plain text logbook file/i,
     );
     expect(screen.getByRole('button', { name: /submit/i })).toBeDisabled();
+  });
+
+  it('accepts plain-text files with .log or no extension and empty MIME type', async () => {
+    const user = userEvent.setup({ applyAccept: false });
+    fetchMock.mockReturnValueOnce(jsonResponse(MOCK_VEHICLES));
+
+    render(<App />);
+
+    await user.selectOptions(await screen.findByLabelText(/make/i), 'ford');
+    await user.selectOptions(screen.getByLabelText(/model/i), 'Ranger');
+    await user.selectOptions(screen.getByLabelText(/badge/i), 'Raptor');
+
+    const fileInput = screen.getByLabelText(/service logbook/i);
+    const logFile = new File(['Service entry'], 'service.log', { type: '' });
+
+    await user.upload(fileInput, logFile);
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /submit/i })).toBeEnabled();
+  });
+
+  it('rejects logbook files larger than 5 MB client-side', async () => {
+    const user = userEvent.setup();
+    fetchMock.mockReturnValueOnce(jsonResponse(MOCK_VEHICLES));
+
+    render(<App />);
+
+    await user.selectOptions(await screen.findByLabelText(/make/i), 'ford');
+    await user.selectOptions(screen.getByLabelText(/model/i), 'Ranger');
+    await user.selectOptions(screen.getByLabelText(/badge/i), 'Raptor');
+
+    const fileInput = screen.getByLabelText(/service logbook/i);
+    const largeFile = new File(
+      [new Uint8Array(5 * 1024 * 1024 + 1)],
+      'huge.txt',
+      { type: 'text/plain' },
+    );
+
+    await user.upload(fileInput, largeFile);
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/5 mb or smaller/i);
+    expect(screen.getByRole('button', { name: /submit/i })).toBeDisabled();
+  });
+
+  it('allows empty (0-byte) logbook files and renders an empty-file placeholder', async () => {
+    const user = userEvent.setup();
+    fetchMock
+      .mockReturnValueOnce(jsonResponse(MOCK_VEHICLES))
+      .mockReturnValueOnce(
+        jsonResponse({
+          make: 'ford',
+          model: 'Ranger',
+          badge: 'Raptor',
+          logbook: {
+            fileName: 'empty.txt',
+            size: 0,
+            content: '',
+          },
+        }),
+      );
+
+    render(<App />);
+
+    await user.selectOptions(await screen.findByLabelText(/make/i), 'ford');
+    await user.selectOptions(screen.getByLabelText(/model/i), 'Ranger');
+    await user.selectOptions(screen.getByLabelText(/badge/i), 'Raptor');
+
+    const emptyFile = new File([], 'empty.txt', { type: 'text/plain' });
+    await user.upload(screen.getByLabelText(/service logbook/i), emptyFile);
+
+    const submitButton = screen.getByRole('button', { name: /submit/i });
+    expect(submitButton).toBeEnabled();
+    fireEvent.submit(submitButton.form);
+
+    expect(
+      await screen.findByRole('heading', { name: /submission received/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('(Empty file)')).toBeInTheDocument();
   });
 
   it('submits the selected vehicle and logbook file and displays the response summary', async () => {
