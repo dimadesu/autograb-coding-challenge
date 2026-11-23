@@ -127,10 +127,19 @@ export function VehicleLogbookForm({
         method: 'POST',
         body: formData,
       });
-      const data = (await response.json()) as SubmissionResultData &
-        ErrorPayload;
+      let data: (SubmissionResultData & ErrorPayload) | null = null;
+      try {
+        data = (await response.json()) as SubmissionResultData & ErrorPayload;
+      } catch {
+        data = null;
+      }
       if (!response.ok) {
-        throw new Error(data.error || 'Submission failed.');
+        throw new Error(
+          data?.error || `Submission failed (${response.status}).`,
+        );
+      }
+      if (!data) {
+        throw new Error('Unexpected response from server.');
       }
       onResultChange(data);
     } catch (err: unknown) {

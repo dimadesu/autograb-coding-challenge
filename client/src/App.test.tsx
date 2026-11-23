@@ -391,4 +391,34 @@ describe('App', () => {
       'Logbook file is too large.',
     );
   });
+
+  it('displays a readable error when submission fails with a non-JSON response', async () => {
+    const user = userEvent.setup();
+    fetchMock
+      .mockReturnValueOnce(jsonResponse(MOCK_VEHICLES))
+      .mockReturnValueOnce(
+        Promise.resolve({
+          ok: false,
+          status: 502,
+          json: () => Promise.reject(new SyntaxError('Unexpected token <')),
+        } as Response),
+      );
+
+    render(<App />);
+
+    await user.selectOptions(await screen.findByLabelText(/make/i), 'tesla');
+    await user.selectOptions(screen.getByLabelText(/model/i), 'Model 3');
+    await user.selectOptions(screen.getByLabelText(/badge/i), 'Performance');
+
+    const txtFile = new File(['entry'], 'service.txt', { type: 'text/plain' });
+    await user.upload(screen.getByLabelText(/service logbook/i), txtFile);
+    const submitButton = screen.getByRole<HTMLButtonElement>('button', {
+      name: /submit/i,
+    });
+    fireEvent.submit(submitButton.form!);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Submission failed (502).',
+    );
+  });
 });
