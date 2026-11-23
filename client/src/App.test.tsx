@@ -421,4 +421,65 @@ describe('App', () => {
       'Submission failed (502).',
     );
   });
+
+  it('disables all form controls while a submission is in flight', async () => {
+    const user = userEvent.setup();
+    let resolveSubmission!: (res: Response) => void;
+    const submissionPromise = new Promise<Response>((resolve) => {
+      resolveSubmission = resolve;
+    });
+
+    fetchMock
+      .mockReturnValueOnce(jsonResponse(MOCK_VEHICLES))
+      .mockReturnValueOnce(submissionPromise);
+
+    render(<App />);
+
+    const makeSelect = await screen.findByLabelText(/make/i);
+    const modelSelect = screen.getByLabelText(/model/i);
+    const badgeSelect = screen.getByLabelText(/badge/i);
+
+    await user.selectOptions(makeSelect, 'ford');
+    await user.selectOptions(modelSelect, 'Ranger');
+    await user.selectOptions(badgeSelect, 'Raptor');
+
+    const fileInput = screen.getByLabelText(/service logbook/i);
+    const txtFile = new File(['entry'], 'service.txt', { type: 'text/plain' });
+    await user.upload(fileInput, txtFile);
+
+    const submitButton = screen.getByRole<HTMLButtonElement>('button', {
+      name: /submit/i,
+    });
+    fireEvent.submit(submitButton.form!);
+
+    expect(makeSelect).toBeDisabled();
+    expect(modelSelect).toBeDisabled();
+    expect(badgeSelect).toBeDisabled();
+    expect(fileInput).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Ford Ranger Raptor' }),
+    ).toBeDisabled();
+    expect(screen.getByRole('button', { name: /uploading/i })).toBeDisabled();
+
+    resolveSubmission(
+      await jsonResponse({
+        make: 'ford',
+        model: 'Ranger',
+        badge: 'Raptor',
+        logbook: {
+          fileName: 'service.txt',
+          size: 5,
+          content: 'entry',
+        },
+      }),
+    );
+
+    expect(
+      await screen.findByRole('heading', { name: /submission received/i }),
+    ).toBeInTheDocument();
+    expect(makeSelect).toBeEnabled();
+    expect(modelSelect).toBeEnabled();
+    expect(badgeSelect).toBeEnabled();
+    expect(fileInput).toBeEnabled();
+  });
 });

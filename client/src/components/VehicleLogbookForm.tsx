@@ -166,6 +166,7 @@ export function VehicleLogbookForm({
           make={make}
           model={model}
           badge={badge}
+          disabled={submitting}
           onMakeChange={handleMakeChange}
           onModelChange={handleModelChange}
           onBadgeChange={handleBadgeChange}

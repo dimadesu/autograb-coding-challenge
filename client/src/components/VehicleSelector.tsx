@@ -55,6 +55,7 @@ interface VehicleSelectorProps {
   make: string;
   model: string;
   badge: string;
+  disabled?: boolean;
   onMakeChange: (make: string) => void;
   onModelChange: (model: string) => void;
   onBadgeChange: (badge: string) => void;
@@ -67,6 +68,7 @@ export function VehicleSelector({
   make,
   model,
   badge,
+  disabled = false,
   onMakeChange,
   onModelChange,
   onBadgeChange,
@@ -81,6 +83,7 @@ export function VehicleSelector({
           value: makeKey,
           label: formatMake(makeKey),
         }))}
+        disabled={disabled}
         onChange={onMakeChange}
       />
 
@@ -92,7 +95,7 @@ export function VehicleSelector({
           value: modelName,
           label: modelName,
         }))}
-        disabled={!make}
+        disabled={disabled || !make}
         onChange={onModelChange}
       />
 
@@ -104,7 +107,7 @@ export function VehicleSelector({
           value: badgeName,
           label: badgeName,
         }))}
-        disabled={!model}
+        disabled={disabled || !model}
         onChange={onBadgeChange}
       />
     </div>

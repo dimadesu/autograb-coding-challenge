@@ -26,6 +26,7 @@ export function LogbookUpload({
         <input
           ref={fileInputRef}
           type="file"
+          disabled={submitting}
           onChange={handleChange}
           required
         />
