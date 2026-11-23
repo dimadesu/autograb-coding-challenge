@@ -1,5 +1,5 @@
 .error-alert {
-  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
   padding: 1rem;
   border-radius: 6px;
   font-size: 0.9rem;
@@ -8,10 +8,14 @@
   border: 1px solid #fecaca;
 }
 
-.error-alert p {
-  margin: 0;
+.error-alert:last-child {
+  margin-bottom: 0;
 }
 
-.error-alert-retry {
-  margin-top: 0.5rem;
+.error-alert p {
+  margin: 0 0 0.5rem;
+}
+
+.error-alert p:last-child {
+  margin-bottom: 0;
 }

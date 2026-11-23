@@ -16,11 +16,7 @@ export function ErrorAlert({
     <div className="error-alert" role="alert">
       <p>{message}</p>
       {onRetry && (
-        <Button
-          variant="danger"
-          className="error-alert-retry"
-          onClick={onRetry}
-        >
+        <Button variant="danger" onClick={onRetry}>
           {retryLabel}
         </Button>
       )}

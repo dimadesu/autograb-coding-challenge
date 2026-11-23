@@ -4,6 +4,10 @@
   gap: 1rem;
 }
 
+.vehicle-selector:not(:last-child) {
+  margin-bottom: 0.25rem;
+}
+
 .vehicle-field {
   display: flex;
   flex-direction: column;

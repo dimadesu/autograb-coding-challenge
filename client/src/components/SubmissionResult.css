@@ -1,5 +1,4 @@
 .submission-result {
-  margin-top: 1.25rem;
   padding: 1rem;
   border-radius: 6px;
   font-size: 0.9rem;
@@ -14,7 +13,7 @@
 }
 
 .submission-result h3 {
-  margin: 0.9rem 0 0.4rem;
+  margin: 0 0 0.4rem;
   font-size: 0.9rem;
 }
 
@@ -22,10 +21,11 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.6rem 1rem;
-  margin: 0;
+  margin: 0 0 0.9rem;
 }
 
 .summary dt {
+  margin: 0 0 0.1rem;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -33,7 +33,7 @@
 }
 
 .summary dd {
-  margin: 0.1rem 0 0;
+  margin: 0;
   font-weight: 600;
 }
 
