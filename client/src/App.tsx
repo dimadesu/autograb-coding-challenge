@@ -24,6 +24,18 @@ interface ErrorPayload {
   error?: string;
 }
 
+interface VehiclePreset {
+  make: string;
+  model: string;
+  badge: string;
+}
+
+const COMMON_VEHICLES: readonly VehiclePreset[] = [
+  { make: 'ford', model: 'Ranger', badge: 'Raptor' },
+  { make: 'tesla', model: 'Model 3', badge: 'Performance' },
+  { make: 'bmw', model: '130d', badge: 'xDrive 26d' },
+];
+
 const MAKE_LABELS: Record<string, string> = {
   ford: 'Ford',
   bmw: 'BMW',
@@ -117,12 +129,28 @@ export default function App() {
   const models = make && vehicles?.[make] ? Object.keys(vehicles[make]) : [];
   const badges =
     make && model && vehicles?.[make]?.[model] ? vehicles[make][model] : [];
+  const availablePresets = COMMON_VEHICLES.filter((preset) =>
+    vehicles?.[preset.make]?.[preset.model]?.includes(preset.badge),
+  );
 
   function clearFileSelection() {
     setLogbookFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  }
+
+  function handleQuickSelect(preset: VehiclePreset) {
+    const isSameVehicle =
+      make === preset.make && model === preset.model && badge === preset.badge;
+    if (!isSameVehicle) {
+      clearFileSelection();
+    }
+    setMake(preset.make);
+    setModel(preset.model);
+    setBadge(preset.badge);
+    setSubmitError(null);
+    setResult(null);
   }
 
   function handleMakeChange(event: ChangeEvent<HTMLSelectElement>) {
@@ -237,6 +265,37 @@ export default function App() {
 
       {!loadingVehicles && !loadError && vehicles && (
         <form className="form" onSubmit={handleSubmit}>
+          {availablePresets.length > 0 && (
+            <div
+              className="quick-select"
+              role="group"
+              aria-label="Quick select common vehicles"
+            >
+              <span className="quick-select-label">Quick select</span>
+              <div className="quick-select-buttons">
+                {availablePresets.map((preset) => {
+                  const isSelected =
+                    make === preset.make &&
+                    model === preset.model &&
+                    badge === preset.badge;
+                  const label = `${formatMake(preset.make)} ${preset.model} ${preset.badge}`;
+                  return (
+                    <button
+                      key={`${preset.make}-${preset.model}-${preset.badge}`}
+                      type="button"
+                      className={`quick-select-btn${isSelected ? ' active' : ''}`}
+                      aria-pressed={isSelected}
+                      disabled={submitting}
+                      onClick={() => handleQuickSelect(preset)}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <label className="field">
             <span>Make</span>
             <select value={make} onChange={handleMakeChange} required>

@@ -122,6 +122,72 @@ describe('App', () => {
     expect(badgeSelect).toBeDisabled();
   });
 
+  it('quick-select buttons pre-fill all three dropdowns, reveal upload, and switch cleanly', async () => {
+    const user = userEvent.setup();
+    fetchMock.mockReturnValueOnce(jsonResponse(MOCK_VEHICLES));
+
+    render(<App />);
+
+    const makeSelect = await screen.findByLabelText(/make/i);
+    const modelSelect = screen.getByLabelText(/model/i);
+    const badgeSelect = screen.getByLabelText(/badge/i);
+
+    const fordPreset = screen.getByRole('button', {
+      name: 'Ford Ranger Raptor',
+    });
+    const teslaPreset = screen.getByRole('button', {
+      name: 'Tesla Model 3 Performance',
+    });
+
+    expect(fordPreset).toHaveAttribute('aria-pressed', 'false');
+    expect(teslaPreset).toHaveAttribute('aria-pressed', 'false');
+
+    await user.click(fordPreset);
+
+    expect(makeSelect).toHaveValue('ford');
+    expect(modelSelect).toBeEnabled();
+    expect(modelSelect).toHaveValue('Ranger');
+    expect(badgeSelect).toBeEnabled();
+    expect(badgeSelect).toHaveValue('Raptor');
+    expect(fordPreset).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByLabelText(/service logbook/i)).toBeInTheDocument();
+
+    // Attach a file, then switch to another quick-select preset and verify the file resets
+    const txtFile = new File(['entry'], 'service.txt', { type: 'text/plain' });
+    await user.upload(screen.getByLabelText(/service logbook/i), txtFile);
+    expect(screen.getByRole('button', { name: /submit/i })).toBeEnabled();
+
+    await user.click(teslaPreset);
+
+    expect(makeSelect).toHaveValue('tesla');
+    expect(modelSelect).toHaveValue('Model 3');
+    expect(badgeSelect).toHaveValue('Performance');
+    expect(fordPreset).toHaveAttribute('aria-pressed', 'false');
+    expect(teslaPreset).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: /submit/i })).toBeDisabled();
+  });
+
+  it('only renders quick-select presets that exist in the loaded catalog', async () => {
+    fetchMock.mockReturnValueOnce(
+      jsonResponse({
+        ford: {
+          Ranger: ['Raptor'],
+        },
+      }),
+    );
+
+    render(<App />);
+
+    await screen.findByLabelText(/make/i);
+
+    expect(
+      screen.getByRole('button', { name: 'Ford Ranger Raptor' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Tesla Model 3 Performance' }),
+    ).not.toBeInTheDocument();
+  });
+
   it('rejects non-plain-text logbook files and keeps submit disabled', async () => {
     const user = userEvent.setup({ applyAccept: false });
     fetchMock.mockReturnValueOnce(jsonResponse(MOCK_VEHICLES));

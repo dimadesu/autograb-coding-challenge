@@ -47,6 +47,50 @@ h1 {
   gap: 1rem;
 }
 
+.quick-select {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.quick-select-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #4b5563;
+}
+
+.quick-select-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.quick-select-btn {
+  padding: 0.4rem 0.7rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #f9fafb;
+  color: #1f2937;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.quick-select-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.quick-select-btn.active {
+  background: #eff6ff;
+  border-color: #2563eb;
+  color: #1d4ed8;
+}
+
+.quick-select-btn.active:hover:not(:disabled) {
+  background: #dbeafe;
+  border-color: #1d4ed8;
+}
+
 .field {
   display: flex;
   flex-direction: column;
