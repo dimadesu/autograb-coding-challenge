@@ -32,29 +32,18 @@ function isVehicleCatalog(value: unknown): value is VehicleCatalog {
   });
 }
 
-let catalogPromise: Promise<VehicleCatalog> | null = null;
-
-function loadCatalog(): Promise<VehicleCatalog> {
-  if (!catalogPromise) {
-    catalogPromise = readFile(VEHICLES_DATA_URL, 'utf-8')
-      .then((raw) => {
-        const parsed: unknown = JSON.parse(raw);
-        if (!isVehicleCatalog(parsed)) {
-          throw new Error('Invalid vehicle catalog JSON structure.');
-        }
-        return parsed;
-      })
-      .catch((err: unknown) => {
-        catalogPromise = null;
-        throw err;
-      });
+async function loadCatalog(): Promise<VehicleCatalog> {
+  const raw = await readFile(VEHICLES_DATA_URL, 'utf-8');
+  const parsed: unknown = JSON.parse(raw);
+  if (!isVehicleCatalog(parsed)) {
+    throw new Error('Invalid vehicle catalog JSON structure.');
   }
-  return catalogPromise;
+  return parsed;
 }
 
 /**
- * Lazy-loaded JSON-backed implementation of VehicleRepository.
- * Reads and parses server/data/vehicles.json on first access and caches it in memory,
+ * JSON-backed implementation of VehicleRepository.
+ * Reads and parses server/data/vehicles.json on demand,
  * keeping routes decoupled from the underlying data source (e.g. a database).
  */
 export const vehicleRepository: VehicleRepository = {
