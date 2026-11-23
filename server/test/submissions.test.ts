@@ -1,9 +1,9 @@
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import type { Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import app from '../src/app.ts';
-import { VEHICLES } from '../src/data/vehicles.ts';
 import type { SubmissionResponse } from '../src/routes/submissions.ts';
 
 interface ErrorResponse {
@@ -34,9 +34,15 @@ describe('API endpoints', () => {
   });
 
   it('GET /api/vehicles returns the vehicle catalog', async () => {
+    const expectedCatalog: unknown = JSON.parse(
+      await readFile(
+        new URL('../data/vehicles.json', import.meta.url),
+        'utf-8',
+      ),
+    );
     const res = await fetch(`${baseUrl}/api/vehicles`);
     assert.equal(res.status, 200);
-    assert.deepEqual(await res.json(), VEHICLES);
+    assert.deepEqual(await res.json(), expectedCatalog);
   });
 
   it('POST /api/submissions rejects missing fields', async () => {

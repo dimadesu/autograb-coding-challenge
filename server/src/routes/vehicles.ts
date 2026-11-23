@@ -1,10 +1,11 @@
 import { Router } from 'express';
-import { VEHICLES } from '../data/vehicles.ts';
+import { vehicleRepository } from '../repositories/vehicles.ts';
 
 const router = Router();
 
-router.get('/', (_req, res) => {
-  res.json(VEHICLES);
+router.get('/', async (_req, res) => {
+  const vehicles = await vehicleRepository.getCatalog();
+  res.json(vehicles);
 });
 
 export default router;

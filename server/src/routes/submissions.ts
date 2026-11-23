@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import path from 'node:path';
-import { isValidVehicleSelection } from '../data/vehicles.ts';
+import { vehicleRepository } from '../repositories/vehicles.ts';
 
 interface HttpError extends Error {
   statusCode?: number;
@@ -65,7 +65,7 @@ const upload = multer({
   },
 });
 
-router.post('/', upload.single('logbook'), (req, res) => {
+router.post('/', upload.single('logbook'), async (req, res) => {
   const body = req.body as Record<string, unknown>;
   const { make, model, badge } = body;
 
@@ -83,7 +83,7 @@ router.post('/', upload.single('logbook'), (req, res) => {
     return;
   }
 
-  if (!isValidVehicleSelection(make, model, badge)) {
+  if (!(await vehicleRepository.isValidSelection(make, model, badge))) {
     res.status(400).json({
       error: 'Invalid make, model, and badge combination.',
     });
