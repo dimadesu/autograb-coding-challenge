@@ -58,7 +58,9 @@ export default function App() {
         service logbook.
       </p>
 
-      {loadingVehicles && <p className="status">Loading vehicle options...</p>}
+      {loadingVehicles && (
+        <p className="catalog-loading-message">Loading vehicle options...</p>
+      )}
 
       {loadError && <ErrorAlert message={loadError} onRetry={retry} />}
 
