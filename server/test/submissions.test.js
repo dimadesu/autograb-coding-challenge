@@ -49,7 +49,11 @@ describe('API endpoints', () => {
     form.append('make', 'ford');
     form.append('model', 'Model 3');
     form.append('badge', 'Performance');
-    form.append('logbook', new Blob(['Service entry 1'], { type: 'text/plain' }), 'logbook.txt');
+    form.append(
+      'logbook',
+      new Blob(['Service entry 1'], { type: 'text/plain' }),
+      'logbook.txt',
+    );
 
     const res = await fetch(`${baseUrl}/api/submissions`, {
       method: 'POST',
@@ -66,7 +70,11 @@ describe('API endpoints', () => {
     form.append('make', 'ford');
     form.append('model', 'Ranger');
     form.append('badge', 'Raptor');
-    form.append('logbook', new Blob(['%PDF-1.4'], { type: 'application/pdf' }), 'logbook.pdf');
+    form.append(
+      'logbook',
+      new Blob(['%PDF-1.4'], { type: 'application/pdf' }),
+      'logbook.pdf',
+    );
 
     const res = await fetch(`${baseUrl}/api/submissions`, {
       method: 'POST',
@@ -79,12 +87,17 @@ describe('API endpoints', () => {
   });
 
   it('POST /api/submissions accepts valid make/model/badge and plain text logbook', async () => {
-    const logbookText = '2025-01-15: 15,000km service completed.\n2025-07-20: Oil and filter change.';
+    const logbookText =
+      '2025-01-15: 15,000km service completed.\n2025-07-20: Oil and filter change.';
     const form = new FormData();
     form.append('make', 'ford');
     form.append('model', 'Ranger');
     form.append('badge', 'Raptor');
-    form.append('logbook', new Blob([logbookText], { type: 'text/plain' }), 'ranger-logbook.txt');
+    form.append(
+      'logbook',
+      new Blob([logbookText], { type: 'text/plain' }),
+      'ranger-logbook.txt',
+    );
 
     const res = await fetch(`${baseUrl}/api/submissions`, {
       method: 'POST',
