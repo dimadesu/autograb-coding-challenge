@@ -1,6 +1,12 @@
 import { readFile } from 'node:fs/promises';
+import { z } from 'zod';
 
-export type VehicleCatalog = Record<string, Record<string, readonly string[]>>;
+const vehicleCatalogSchema = z.record(
+  z.string(),
+  z.record(z.string(), z.array(z.string()).readonly()),
+);
+
+export type VehicleCatalog = z.infer<typeof vehicleCatalogSchema>;
 
 export interface VehicleRepository {
   getCatalog(): Promise<VehicleCatalog>;
@@ -13,32 +19,9 @@ export interface VehicleRepository {
 
 const VEHICLES_DATA_URL = new URL('../../data/vehicles.json', import.meta.url);
 
-function isVehicleCatalog(value: unknown): value is VehicleCatalog {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-    return false;
-  }
-  return Object.values(value).every((models) => {
-    if (
-      typeof models !== 'object' ||
-      models === null ||
-      Array.isArray(models)
-    ) {
-      return false;
-    }
-    return Object.values(models).every(
-      (badges) =>
-        Array.isArray(badges) && badges.every((b) => typeof b === 'string'),
-    );
-  });
-}
-
 async function loadCatalog(): Promise<VehicleCatalog> {
   const raw = await readFile(VEHICLES_DATA_URL, 'utf-8');
-  const parsed: unknown = JSON.parse(raw);
-  if (!isVehicleCatalog(parsed)) {
-    throw new Error('Invalid vehicle catalog JSON structure.');
-  }
-  return parsed;
+  return vehicleCatalogSchema.parse(JSON.parse(raw));
 }
 
 /**

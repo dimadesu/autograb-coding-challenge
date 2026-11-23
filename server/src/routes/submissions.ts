@@ -1,7 +1,14 @@
 import { Router } from 'express';
 import multer from 'multer';
 import path from 'node:path';
+import { z } from 'zod';
 import { vehicleRepository } from '../repositories/vehicles.ts';
+
+const submissionBodySchema = z.object({
+  make: z.string().min(1),
+  model: z.string().min(1),
+  badge: z.string().min(1),
+});
 
 interface HttpError extends Error {
   statusCode?: number;
@@ -66,22 +73,16 @@ const upload = multer({
 });
 
 router.post('/', upload.single('logbook'), async (req, res) => {
-  const body = req.body as Record<string, unknown>;
-  const { make, model, badge } = body;
+  const parsedBody = submissionBodySchema.safeParse(req.body);
 
-  if (
-    typeof make !== 'string' ||
-    typeof model !== 'string' ||
-    typeof badge !== 'string' ||
-    !make ||
-    !model ||
-    !badge
-  ) {
+  if (!parsedBody.success) {
     res.status(400).json({
       error: 'Make, model, and badge are all required.',
     });
     return;
   }
+
+  const { make, model, badge } = parsedBody.data;
 
   if (!(await vehicleRepository.isValidSelection(make, model, badge))) {
     res.status(400).json({
