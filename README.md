@@ -28,16 +28,16 @@ npm run dev
 
 ## Production Build & Local Preview
 
-Build the React frontend into `client/dist`:
-
-```bash
-npm run build
-```
-
-Run the API server (`http://localhost:3001`) and serve the built frontend (`http://localhost:4173`) concurrently:
+Build the React frontend into `client/dist` and run both the API server (`http://localhost:3001`) and built frontend preview (`http://localhost:4173`) concurrently:
 
 ```bash
 npm start
+```
+
+To build the frontend alone without starting the servers:
+
+```bash
+npm run build
 ```
 
 In deployment, `client/dist` can be hosted on any static host/CDN or behind a reverse proxy (e.g. Nginx) forwarding `/api/*` to the Express server.
