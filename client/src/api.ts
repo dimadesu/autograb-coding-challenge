@@ -31,17 +31,18 @@ export async function submitLogbook(
   });
 
   let data: (SubmissionResultData & ErrorPayload) | null = null;
+  let parseError: unknown;
   try {
     data = (await response.json()) as SubmissionResultData & ErrorPayload;
-  } catch {
-    // Non-JSON error or response body; handled below.
+  } catch (err) {
+    parseError = err;
   }
 
   if (!response.ok) {
     throw new Error(data?.error || `Submission failed (${response.status}).`);
   }
   if (!data) {
-    throw new Error('Unexpected response from server.');
+    throw new Error('Unexpected response from server.', { cause: parseError });
   }
 
   return data;
