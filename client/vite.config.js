@@ -18,4 +18,8 @@ export default defineConfig({
     port: 4173,
     proxy: apiProxy,
   },
+  test: {
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.js',
+  },
 });
