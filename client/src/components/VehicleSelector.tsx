@@ -1,5 +1,5 @@
 import type { ChangeEvent } from 'react';
-import { formatMake } from '../utils/vehicle.ts';
+import { formatMake } from '../utils/formatMake.ts';
 import './VehicleSelector.css';
 
 interface SelectOption {

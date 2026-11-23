@@ -1,5 +1,5 @@
 import type { VehiclePreset, VehicleSelection } from '../types.ts';
-import { formatMake } from '../utils/vehicle.ts';
+import { formatMake } from '../utils/formatMake.ts';
 import { Button } from './Button.tsx';
 import './QuickSelect.css';
 
