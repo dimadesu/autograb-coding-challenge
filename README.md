@@ -14,6 +14,14 @@
 
 ## Getting Started
 
+### Node version
+
+This project uses `.nvmrc` (`v26.13.1`). If you use [nvm](https://github.com/nvm-sh/nvm), switch to the expected Node.js version first:
+
+```
+nvm use
+```
+
 ### Install dependencies
 
 Install root, server, and client dependencies:
