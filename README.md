@@ -14,36 +14,48 @@
 
 ## Getting Started
 
+### Install dependencies
+
 Install root, server, and client dependencies:
 
 ```
 npm install && npm run install:all
 ```
 
-Run both frontend (`http://localhost:5173`) and backend (`http://localhost:3001`) in dev mode:
+### Run in dev mode
 
-```bash
+This will auto refresh / hot reload on source file changes.
+
+```
 npm run dev
 ```
 
-## Production Build & Local Preview
+Frontend `http://localhost:5173`.
+Backend `http://localhost:3001`
 
-Build the React frontend into `client/dist` and run both the API server (`http://localhost:3001`) and built frontend preview (`http://localhost:4173`) concurrently:
+### Production build
 
-```bash
+Builds the React frontend into `client/dist`. Serves frontend on port 4173.
+
+```
 npm start
 ```
 
+Frontend "preview" (`http://localhost:4173`).
+Backend API server (`http://localhost:3001`).
+
+### Deloyment ideas
+
 To build the frontend alone without starting the servers:
 
-```bash
+```
 npm run build
 ```
 
-In deployment, `client/dist` can be hosted on any static host/CDN or behind a reverse proxy (e.g. Nginx) forwarding `/api/*` to the Express server.
+`client/dist` can be hosted on any static host/CDN or behind a reverse proxy (e.g. Nginx) forwarding `/api/*` to the Express server.
 
-## Testing
+### Testing
 
-```bash
+```
 npm test
 ```
