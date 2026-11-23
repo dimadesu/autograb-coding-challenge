@@ -1,5 +1,6 @@
 import type { VehiclePreset, VehicleSelection } from '../types.ts';
 import { formatMake } from '../utils/vehicle.ts';
+import { Button } from './Button.tsx';
 import './QuickSelect.css';
 
 interface QuickSelectProps {
@@ -34,16 +35,16 @@ export function QuickSelect({
             selected.badge === preset.badge;
           const label = `${formatMake(preset.make)} ${preset.model} ${preset.badge}`;
           return (
-            <button
+            <Button
               key={`${preset.make}-${preset.model}-${preset.badge}`}
-              type="button"
+              variant="secondary"
               className={`quick-select-btn${isSelected ? ' active' : ''}`}
               aria-pressed={isSelected}
               disabled={disabled}
               onClick={() => onSelect(preset)}
             >
               {label}
-            </button>
+            </Button>
           );
         })}
       </div>

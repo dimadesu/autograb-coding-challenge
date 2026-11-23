@@ -1,4 +1,5 @@
 import type { ChangeEvent, RefObject } from 'react';
+import { Button } from './Button.tsx';
 import './LogbookUpload.css';
 
 interface LogbookUploadProps {
@@ -31,9 +32,9 @@ export function LogbookUpload({
         />
       </label>
 
-      <button type="submit" disabled={submitting || !canSubmit}>
+      <Button type="submit" disabled={submitting || !canSubmit}>
         {submitting ? 'Uploading...' : 'Submit'}
-      </button>
+      </Button>
     </div>
   );
 }

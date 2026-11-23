@@ -1,3 +1,4 @@
+import { Button } from './Button.tsx';
 import './ErrorAlert.css';
 
 interface ErrorAlertProps {
@@ -15,9 +16,13 @@ export function ErrorAlert({
     <div className="error-alert" role="alert">
       <p>{message}</p>
       {onRetry && (
-        <button type="button" className="error-alert-retry" onClick={onRetry}>
+        <Button
+          variant="danger"
+          className="error-alert-retry"
+          onClick={onRetry}
+        >
           {retryLabel}
-        </button>
+        </Button>
       )}
     </div>
   );

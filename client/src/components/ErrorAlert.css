@@ -14,9 +14,4 @@
 
 .error-alert-retry {
   margin-top: 0.5rem;
-  background: #991b1b;
-}
-
-.error-alert-retry:hover:not(:disabled) {
-  background: #7f1d1d;
 }

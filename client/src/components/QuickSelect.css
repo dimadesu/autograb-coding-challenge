@@ -16,21 +16,6 @@
   gap: 0.5rem;
 }
 
-.quick-select-btn {
-  padding: 0.4rem 0.7rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  background: #f9fafb;
-  color: #1f2937;
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-.quick-select-btn:hover:not(:disabled) {
-  background: #f3f4f6;
-  border-color: #9ca3af;
-}
-
 .quick-select-btn.active {
   background: #eff6ff;
   border-color: #2563eb;
