@@ -5,7 +5,7 @@
 - Front-end: React, Vite.
 - Back-end: Node.js, Express + Multer.
 - Single Git repository using separate `client/` and `server/` packages.
-- Run scripts to start/stop both from top folder.
+- Run scripts to control both from the root folder.
 
 ## Structure
 
