@@ -1,6 +1,6 @@
 import { useRef, useState, type FormEvent } from 'react';
+import { submitLogbook } from '../api.ts';
 import type {
-  ErrorPayload,
   SubmissionResultData,
   VehicleCatalog,
   VehiclePreset,
@@ -128,32 +128,9 @@ export function VehicleLogbookForm({
       return;
     }
 
-    const formData = new FormData();
-    formData.append('make', make);
-    formData.append('model', model);
-    formData.append('badge', badge);
-    formData.append('logbook', logbookFile);
-
     setSubmitting(true);
     try {
-      const response = await fetch('/api/submissions', {
-        method: 'POST',
-        body: formData,
-      });
-      let data: (SubmissionResultData & ErrorPayload) | null = null;
-      try {
-        data = (await response.json()) as SubmissionResultData & ErrorPayload;
-      } catch {
-        data = null;
-      }
-      if (!response.ok) {
-        throw new Error(
-          data?.error || `Submission failed (${response.status}).`,
-        );
-      }
-      if (!data) {
-        throw new Error('Unexpected response from server.');
-      }
+      const data = await submitLogbook({ make, model, badge }, logbookFile);
       onResultChange(data);
     } catch (err: unknown) {
       setSubmitError(err instanceof Error ? err.message : 'Submission failed.');
