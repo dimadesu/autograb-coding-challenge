@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import multer from 'multer';
+import vehiclesRouter from './routes/vehicles.js';
 import submissionsRouter from './routes/submissions.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -16,6 +17,7 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
+app.use('/api/vehicles', vehiclesRouter);
 app.use('/api/submissions', submissionsRouter);
 
 // Serve built React frontend in production if present
@@ -34,6 +36,9 @@ if (fs.existsSync(clientDistDir)) {
 app.use((err, _req, res, _next) => {
   if (err instanceof multer.MulterError) {
     return res.status(400).json({ error: err.message });
+  }
+  if (err.statusCode) {
+    return res.status(err.statusCode).json({ error: err.message });
   }
   console.error(err);
   return res.status(500).json({ error: 'Internal server error' });

@@ -1,33 +1,143 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-const DROPDOWN_1_OPTIONS = ['Option 1A', 'Option 1B', 'Option 1C'];
-const DROPDOWN_2_OPTIONS = ['Option 2A', 'Option 2B', 'Option 2C'];
-const DROPDOWN_3_OPTIONS = ['Option 3A', 'Option 3B', 'Option 3C'];
+const MAKE_LABELS = {
+  ford: 'Ford',
+  bmw: 'BMW',
+  tesla: 'Tesla',
+};
+
+function formatMake(make) {
+  if (Object.hasOwn(MAKE_LABELS, make)) {
+    return MAKE_LABELS[make];
+  }
+  return make.charAt(0).toUpperCase() + make.slice(1);
+}
 
 export default function App() {
-  const [dropdown1, setDropdown1] = useState('');
-  const [dropdown2, setDropdown2] = useState('');
-  const [dropdown3, setDropdown3] = useState('');
-  const [file, setFile] = useState(null);
+  const [vehicles, setVehicles] = useState(null);
+  const [loadingVehicles, setLoadingVehicles] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [reloadTick, setReloadTick] = useState(0);
+
+  const [make, setMake] = useState('');
+  const [model, setModel] = useState('');
+  const [badge, setBadge] = useState('');
+  const [logbookFile, setLogbookFile] = useState(null);
+
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
+  const [submitError, setSubmitError] = useState(null);
   const [result, setResult] = useState(null);
+
+  const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function fetchVehicles() {
+      setLoadingVehicles(true);
+      setLoadError(null);
+      try {
+        const response = await fetch('/api/vehicles', {
+          signal: controller.signal,
+        });
+        if (!response.ok) {
+          throw new Error(`Failed to load vehicles (${response.status})`);
+        }
+        const data = await response.json();
+        setVehicles(data);
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          setLoadError(err.message || 'Unable to load vehicle options.');
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoadingVehicles(false);
+        }
+      }
+    }
+
+    fetchVehicles();
+    return () => controller.abort();
+  }, [reloadTick]);
+
+  const makes = vehicles ? Object.keys(vehicles) : [];
+  const models = make && vehicles?.[make] ? Object.keys(vehicles[make]) : [];
+  const badges =
+    make && model && vehicles?.[make]?.[model] ? vehicles[make][model] : [];
+
+  function clearFileSelection() {
+    setLogbookFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }
+
+  function handleMakeChange(event) {
+    setMake(event.target.value);
+    setModel('');
+    setBadge('');
+    clearFileSelection();
+    setSubmitError(null);
+    setResult(null);
+  }
+
+  function handleModelChange(event) {
+    setModel(event.target.value);
+    setBadge('');
+    clearFileSelection();
+    setSubmitError(null);
+    setResult(null);
+  }
+
+  function handleBadgeChange(event) {
+    const nextBadge = event.target.value;
+    setBadge(nextBadge);
+    if (!nextBadge) {
+      clearFileSelection();
+    }
+    setSubmitError(null);
+    setResult(null);
+  }
+
+  function handleFileChange(event) {
+    const selected = event.target.files?.[0] ?? null;
+    setSubmitError(null);
+    setResult(null);
+
+    if (selected) {
+      const isPlainText =
+        selected.type === 'text/plain' ||
+        selected.name.toLowerCase().endsWith('.txt');
+      if (!isPlainText) {
+        clearFileSelection();
+        setSubmitError('Please attach a plain text (.txt) logbook file.');
+        return;
+      }
+    }
+
+    setLogbookFile(selected);
+  }
 
   async function handleSubmit(event) {
     event.preventDefault();
-    setError(null);
+    setSubmitError(null);
     setResult(null);
 
-    if (!dropdown1 || !dropdown2 || !dropdown3 || !file) {
-      setError('Please select all three options and attach a file.');
+    if (!make || !model || !badge) {
+      setSubmitError('Please select a make, model, and badge.');
+      return;
+    }
+
+    if (!logbookFile) {
+      setSubmitError('Please attach your service logbook (.txt file).');
       return;
     }
 
     const formData = new FormData();
-    formData.append('dropdown1', dropdown1);
-    formData.append('dropdown2', dropdown2);
-    formData.append('dropdown3', dropdown3);
-    formData.append('file', file);
+    formData.append('make', make);
+    formData.append('model', model);
+    formData.append('badge', badge);
+    formData.append('logbook', logbookFile);
 
     setSubmitting(true);
     try {
@@ -35,15 +145,13 @@ export default function App() {
         method: 'POST',
         body: formData,
       });
-
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || 'Submission failed.');
       }
-
       setResult(data);
     } catch (err) {
-      setError(err.message);
+      setSubmitError(err.message);
     } finally {
       setSubmitting(false);
     }
@@ -51,81 +159,131 @@ export default function App() {
 
   return (
     <main className="container">
-      <h1>Submit Form</h1>
+      <h1>Vehicle Service Logbook</h1>
+      <p className="subtitle">
+        Select your vehicle&apos;s make, model, and badge, then upload your
+        service logbook.
+      </p>
 
-      <form className="form" onSubmit={handleSubmit}>
-        <label className="field">
-          <span>Dropdown 1</span>
-          <select
-            value={dropdown1}
-            onChange={(e) => setDropdown1(e.target.value)}
-            required
-          >
-            <option value="">Select an option...</option>
-            {DROPDOWN_1_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt}
-              </option>
-            ))}
-          </select>
-        </label>
+      {loadingVehicles && <p className="status">Loading vehicle options...</p>}
 
-        <label className="field">
-          <span>Dropdown 2</span>
-          <select
-            value={dropdown2}
-            onChange={(e) => setDropdown2(e.target.value)}
-            required
-          >
-            <option value="">Select an option...</option>
-            {DROPDOWN_2_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="field">
-          <span>Dropdown 3</span>
-          <select
-            value={dropdown3}
-            onChange={(e) => setDropdown3(e.target.value)}
-            required
-          >
-            <option value="">Select an option...</option>
-            {DROPDOWN_3_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="field">
-          <span>Attachment</span>
-          <input
-            type="file"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            required
-          />
-        </label>
-
-        <button type="submit" disabled={submitting}>
-          {submitting ? 'Submitting...' : 'Submit'}
-        </button>
-      </form>
-
-      {error && (
+      {loadError && (
         <div className="alert error" role="alert">
-          {error}
+          <p>{loadError}</p>
+          <button
+            type="button"
+            className="secondary-btn"
+            onClick={() => setReloadTick((n) => n + 1)}
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {!loadingVehicles && !loadError && vehicles && (
+        <form className="form" onSubmit={handleSubmit}>
+          <label className="field">
+            <span>Make</span>
+            <select value={make} onChange={handleMakeChange} required>
+              <option value="">Select make...</option>
+              {makes.map((makeKey) => (
+                <option key={makeKey} value={makeKey}>
+                  {formatMake(makeKey)}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="field">
+            <span>Model</span>
+            <select
+              value={model}
+              onChange={handleModelChange}
+              disabled={!make}
+              required
+            >
+              <option value="">
+                {make ? 'Select model...' : 'Select a make first'}
+              </option>
+              {models.map((modelName) => (
+                <option key={modelName} value={modelName}>
+                  {modelName}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="field">
+            <span>Badge</span>
+            <select
+              value={badge}
+              onChange={handleBadgeChange}
+              disabled={!model}
+              required
+            >
+              <option value="">
+                {model ? 'Select badge...' : 'Select a model first'}
+              </option>
+              {badges.map((badgeName) => (
+                <option key={badgeName} value={badgeName}>
+                  {badgeName}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {badge && (
+            <div className="upload-section">
+              <label className="field">
+                <span>Service Logbook (.txt)</span>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".txt,text/plain"
+                  onChange={handleFileChange}
+                  required
+                />
+              </label>
+
+              <button type="submit" disabled={submitting || !logbookFile}>
+                {submitting ? 'Uploading...' : 'Submit'}
+              </button>
+            </div>
+          )}
+        </form>
+      )}
+
+      {submitError && (
+        <div className="alert error" role="alert">
+          {submitError}
         </div>
       )}
 
       {result && (
-        <section className="alert success">
-          <h2>Response</h2>
-          <pre>{JSON.stringify(result, null, 2)}</pre>
+        <section className="alert success" aria-live="polite">
+          <h2>Submission Received</h2>
+          <dl className="summary">
+            <div>
+              <dt>Make</dt>
+              <dd>{formatMake(result.make)}</dd>
+            </div>
+            <div>
+              <dt>Model</dt>
+              <dd>{result.model}</dd>
+            </div>
+            <div>
+              <dt>Badge</dt>
+              <dd>{result.badge}</dd>
+            </div>
+            <div>
+              <dt>Logbook File</dt>
+              <dd>
+                {result.logbook.fileName} ({result.logbook.size} bytes)
+              </dd>
+            </div>
+          </dl>
+          <h3>Logbook Contents</h3>
+          <pre className="logbook-content">{result.logbook.content}</pre>
         </section>
       )}
     </main>
