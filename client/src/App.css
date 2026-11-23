@@ -12,8 +12,15 @@ body {
     BlinkMacSystemFont,
     'Segoe UI',
     sans-serif;
+  line-height: 1.5;
   background: #f6f7f9;
   color: #1f2937;
+}
+
+button,
+input,
+select {
+  font-family: inherit;
 }
 
 .container {
