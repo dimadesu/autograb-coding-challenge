@@ -6,7 +6,6 @@ import type {
   VehiclePreset,
 } from '../types.ts';
 import { validateLogbookFile } from '../utils/fileValidation.ts';
-import { getAvailablePresets } from '../utils/vehicle.ts';
 import { ErrorAlert } from './ErrorAlert.tsx';
 import { LogbookUpload } from './LogbookUpload.tsx';
 import { QuickSelect } from './QuickSelect.tsx';
@@ -15,11 +14,13 @@ import './VehicleLogbookForm.css';
 
 interface VehicleLogbookFormProps {
   vehicles: VehicleCatalog;
+  commonVehicles: readonly VehiclePreset[];
   onResultChange: (result: SubmissionResultData | null) => void;
 }
 
 export function VehicleLogbookForm({
   vehicles,
+  commonVehicles,
   onResultChange,
 }: VehicleLogbookFormProps) {
   const [make, setMake] = useState('');
@@ -36,7 +37,6 @@ export function VehicleLogbookForm({
   const models = make && vehicles[make] ? Object.keys(vehicles[make]) : [];
   const badges =
     make && model && vehicles[make]?.[model] ? vehicles[make][model] : [];
-  const availablePresets = getAvailablePresets(vehicles);
 
   function clearFileSelection() {
     setLogbookFile(null);
@@ -144,7 +144,7 @@ export function VehicleLogbookForm({
     <>
       <form className="form" onSubmit={handleSubmit}>
         <QuickSelect
-          presets={availablePresets}
+          presets={commonVehicles}
           selected={{ make, model, badge }}
           disabled={submitting}
           onSelect={handleQuickSelect}

@@ -8,6 +8,11 @@ export interface VehicleSelection {
 
 export type VehiclePreset = VehicleSelection;
 
+export interface VehicleCatalogResponse {
+  catalog: VehicleCatalog;
+  commonVehicles: VehiclePreset[];
+}
+
 export interface SubmissionResultData {
   make: string;
   model: string;

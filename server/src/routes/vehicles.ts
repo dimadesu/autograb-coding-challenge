@@ -4,8 +4,11 @@ import { vehicleRepository } from '../repositories/vehicles.ts';
 const router = Router();
 
 router.get('/', async (_req, res) => {
-  const vehicles = await vehicleRepository.getCatalog();
-  res.json(vehicles);
+  const [catalog, commonVehicles] = await Promise.all([
+    vehicleRepository.getCatalog(),
+    vehicleRepository.getCommonVehicles(),
+  ]);
+  res.json({ catalog, commonVehicles });
 });
 
 export default router;

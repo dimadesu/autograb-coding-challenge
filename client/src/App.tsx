@@ -8,6 +8,7 @@ import type { SubmissionResultData } from './types.ts';
 export default function App() {
   const {
     vehicles,
+    commonVehicles,
     loading: loadingVehicles,
     error: loadError,
     retry,
@@ -27,7 +28,11 @@ export default function App() {
       {loadError && <ErrorAlert message={loadError} onRetry={retry} />}
 
       {!loadingVehicles && !loadError && vehicles && (
-        <VehicleLogbookForm vehicles={vehicles} onResultChange={setResult} />
+        <VehicleLogbookForm
+          vehicles={vehicles}
+          commonVehicles={commonVehicles}
+          onResultChange={setResult}
+        />
       )}
 
       {result && <SubmissionResult result={result} />}

@@ -12,16 +12,23 @@ import {
 import App from './App.tsx';
 
 const MOCK_VEHICLES = {
-  ford: {
-    Ranger: ['Raptor', 'Wildtrak'],
-    Falcon: ['XR6', 'XR8'],
+  catalog: {
+    ford: {
+      Ranger: ['Raptor', 'Wildtrak'],
+      Falcon: ['XR6', 'XR8'],
+    },
+    bmw: {
+      '130d': ['xDrive 26d'],
+    },
+    tesla: {
+      'Model 3': ['Performance', 'Long Range'],
+    },
   },
-  bmw: {
-    '130d': ['xDrive 26d'],
-  },
-  tesla: {
-    'Model 3': ['Performance', 'Long Range'],
-  },
+  commonVehicles: [
+    { make: 'ford', model: 'Ranger', badge: 'Raptor' },
+    { make: 'tesla', model: 'Model 3', badge: 'Performance' },
+    { make: 'bmw', model: '130d', badge: 'xDrive 26d' },
+  ],
 };
 
 function jsonResponse(
@@ -167,12 +174,15 @@ describe('App', () => {
     expect(screen.getByRole('button', { name: /submit/i })).toBeDisabled();
   });
 
-  it('only renders quick-select presets that exist in the loaded catalog', async () => {
+  it('renders only the quick-select presets returned by the server', async () => {
     fetchMock.mockReturnValueOnce(
       jsonResponse({
-        ford: {
-          Ranger: ['Raptor'],
+        catalog: {
+          ford: {
+            Ranger: ['Raptor'],
+          },
         },
+        commonVehicles: [{ make: 'ford', model: 'Ranger', badge: 'Raptor' }],
       }),
     );
 

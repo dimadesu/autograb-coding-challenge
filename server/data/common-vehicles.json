@@ -1,0 +1,5 @@
+[
+  { "make": "ford", "model": "Ranger", "badge": "Raptor" },
+  { "make": "tesla", "model": "Model 3", "badge": "Performance" },
+  { "make": "bmw", "model": "130d", "badge": "xDrive 26d" }
+]

@@ -1,15 +1,20 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { VehicleCatalog } from '../types.ts';
+import type {
+  VehicleCatalog,
+  VehicleCatalogResponse,
+  VehiclePreset,
+} from '../types.ts';
 
 interface UseVehicleCatalogResult {
   vehicles: VehicleCatalog | null;
+  commonVehicles: readonly VehiclePreset[];
   loading: boolean;
   error: string | null;
   retry: () => void;
 }
 
 export function useVehicleCatalog(): UseVehicleCatalogResult {
-  const [vehicles, setVehicles] = useState<VehicleCatalog | null>(null);
+  const [data, setData] = useState<VehicleCatalogResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadTick, setReloadTick] = useState(0);
@@ -27,8 +32,8 @@ export function useVehicleCatalog(): UseVehicleCatalogResult {
         if (!response.ok) {
           throw new Error(`Failed to load vehicles (${response.status})`);
         }
-        const data = (await response.json()) as VehicleCatalog;
-        setVehicles(data);
+        const payload = (await response.json()) as VehicleCatalogResponse;
+        setData(payload);
       } catch (err: unknown) {
         if (err instanceof Error && err.name === 'AbortError') {
           return;
@@ -53,5 +58,11 @@ export function useVehicleCatalog(): UseVehicleCatalogResult {
     setReloadTick((n) => n + 1);
   }, []);
 
-  return { vehicles, loading, error, retry };
+  return {
+    vehicles: data?.catalog ?? null,
+    commonVehicles: data?.commonVehicles ?? [],
+    loading,
+    error,
+    retry,
+  };
 }

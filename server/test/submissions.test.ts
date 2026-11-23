@@ -33,16 +33,24 @@ describe('API endpoints', () => {
     assert.deepEqual(await res.json(), { status: 'ok' });
   });
 
-  it('GET /api/vehicles returns the vehicle catalog', async () => {
-    const expectedCatalog: unknown = JSON.parse(
-      await readFile(
-        new URL('../data/vehicles.json', import.meta.url),
-        'utf-8',
-      ),
-    );
+  it('GET /api/vehicles returns the vehicle catalog and common vehicles', async () => {
+    const [expectedCatalog, expectedCommonVehicles]: unknown[] =
+      await Promise.all([
+        readFile(
+          new URL('../data/vehicles.json', import.meta.url),
+          'utf-8',
+        ).then((raw) => JSON.parse(raw) as unknown),
+        readFile(
+          new URL('../data/common-vehicles.json', import.meta.url),
+          'utf-8',
+        ).then((raw) => JSON.parse(raw) as unknown),
+      ]);
     const res = await fetch(`${baseUrl}/api/vehicles`);
     assert.equal(res.status, 200);
-    assert.deepEqual(await res.json(), expectedCatalog);
+    assert.deepEqual(await res.json(), {
+      catalog: expectedCatalog,
+      commonVehicles: expectedCommonVehicles,
+    });
   });
 
   it('POST /api/submissions rejects missing fields', async () => {
