@@ -9,10 +9,15 @@
     "dev:server": "npm --prefix server run dev",
     "dev:client": "npm --prefix client run dev",
     "dev": "concurrently -n server,client -c blue,green \"npm:dev:server\" \"npm:dev:client\"",
-    "build": "npm --prefix client run build",
+    "build:server": "npm --prefix server run build",
+    "build:client": "npm --prefix client run build",
+    "build": "npm run build:server && npm run build:client",
     "start:server": "npm --prefix server start",
     "start:client": "npm --prefix client run preview",
     "start": "npm run build && concurrently -n server,client -c blue,green \"npm:start:server\" \"npm:start:client\"",
+    "typecheck:server": "npm --prefix server run typecheck",
+    "typecheck:client": "npm --prefix client run typecheck",
+    "typecheck": "npm run typecheck:server && npm run typecheck:client",
     "test:server": "npm --prefix server test",
     "test:client": "npm --prefix client test",
     "test": "npm run test:server && npm run test:client",
@@ -29,6 +34,8 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.8",
     "globals": "^17.14.0",
-    "prettier": "^3.10.1"
+    "prettier": "^3.10.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.73.0"
   }
 }

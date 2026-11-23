@@ -4,30 +4,35 @@ import globals from 'globals';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import prettierConfig from 'eslint-config-prettier';
+import tseslint from 'typescript-eslint';
 
 export default defineConfig([
   globalIgnores(['**/dist']),
   js.configs.recommended,
+  ...tseslint.configs.recommended,
   {
-    files: ['server/**/*.js', 'client/vite.config.js', 'eslint.config.js'],
+    files: ['server/**/*.ts', 'client/vite.config.ts', 'eslint.config.js'],
     languageOptions: {
       globals: globals.node,
     },
     rules: {
-      'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_' },
+      ],
     },
   },
   {
-    files: ['client/src/**/*.{js,jsx}'],
+    files: ['client/src/**/*.{ts,tsx}'],
     extends: [reactHooks.configs.flat.recommended, reactRefresh.configs.vite],
     languageOptions: {
       globals: globals.browser,
-      parserOptions: {
-        ecmaFeatures: { jsx: true },
-      },
     },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^[A-Z_]' },
+      ],
     },
   },
   prettierConfig,

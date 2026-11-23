@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { VEHICLES } from '../data/vehicles.js';
+import { VEHICLES } from '../data/vehicles.ts';
 
 const router = Router();
 

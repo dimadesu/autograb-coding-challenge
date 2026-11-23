@@ -1,7 +1,23 @@
 import { Router } from 'express';
 import multer from 'multer';
 import path from 'node:path';
-import { isValidVehicleSelection } from '../data/vehicles.js';
+import { isValidVehicleSelection } from '../data/vehicles.ts';
+
+interface HttpError extends Error {
+  statusCode?: number;
+}
+
+export interface SubmissionResponse {
+  make: string;
+  model: string;
+  badge: string;
+  logbook: {
+    fileName: string;
+    mimeType: string;
+    size: number;
+    content: string;
+  };
+}
 
 const router = Router();
 
@@ -10,7 +26,7 @@ const ALLOWED_TEXT_EXTENSIONS = new Set(['.txt', '.log', '.md', '.csv', '']);
 const GENERIC_MIME_TYPES = new Set(['', 'application/octet-stream']);
 const utf8Decoder = new TextDecoder('utf-8', { fatal: true });
 
-function isAllowedPlainTextUpload(file) {
+function isAllowedPlainTextUpload(file: Express.Multer.File): boolean {
   const ext = path.extname(file.originalname).toLowerCase();
   const mime = (file.mimetype || '').toLowerCase();
 
@@ -21,7 +37,7 @@ function isAllowedPlainTextUpload(file) {
   return GENERIC_MIME_TYPES.has(mime) && ALLOWED_TEXT_EXTENSIONS.has(ext);
 }
 
-function decodePlainTextBuffer(buffer) {
+function decodePlainTextBuffer(buffer: Buffer): string | null {
   if (buffer.includes(0)) {
     return null;
   }
@@ -40,16 +56,18 @@ const upload = multer({
   },
   fileFilter: (_req, file, cb) => {
     if (!isAllowedPlainTextUpload(file)) {
-      const err = new Error('Logbook must be a plain text file.');
+      const err: HttpError = new Error('Logbook must be a plain text file.');
       err.statusCode = 400;
-      return cb(err);
+      cb(err);
+      return;
     }
-    return cb(null, true);
+    cb(null, true);
   },
 });
 
 router.post('/', upload.single('logbook'), (req, res) => {
-  const { make, model, badge } = req.body;
+  const body = req.body as Record<string, unknown>;
+  const { make, model, badge } = body;
 
   if (
     typeof make !== 'string' ||
@@ -59,31 +77,35 @@ router.post('/', upload.single('logbook'), (req, res) => {
     !model ||
     !badge
   ) {
-    return res.status(400).json({
+    res.status(400).json({
       error: 'Make, model, and badge are all required.',
     });
+    return;
   }
 
   if (!isValidVehicleSelection(make, model, badge)) {
-    return res.status(400).json({
+    res.status(400).json({
       error: 'Invalid make, model, and badge combination.',
     });
+    return;
   }
 
   if (!req.file) {
-    return res.status(400).json({
+    res.status(400).json({
       error: 'A plain text service logbook file is required.',
     });
+    return;
   }
 
   const content = decodePlainTextBuffer(req.file.buffer);
   if (content === null) {
-    return res.status(400).json({
+    res.status(400).json({
       error: 'Logbook must be a valid UTF-8 plain text file.',
     });
+    return;
   }
 
-  return res.status(200).json({
+  const response: SubmissionResponse = {
     make,
     model,
     badge,
@@ -93,7 +115,9 @@ router.post('/', upload.single('logbook'), (req, res) => {
       size: req.file.size,
       content,
     },
-  });
+  };
+
+  res.status(200).json(response);
 });
 
 export default router;

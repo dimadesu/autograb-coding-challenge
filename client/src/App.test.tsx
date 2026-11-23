@@ -1,7 +1,15 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import App from './App.jsx';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+  type Mock,
+} from 'vitest';
+import App from './App.tsx';
 
 const MOCK_VEHICLES = {
   ford: {
@@ -16,19 +24,22 @@ const MOCK_VEHICLES = {
   },
 };
 
-function jsonResponse(body, { ok = true, status = 200 } = {}) {
+function jsonResponse(
+  body: unknown,
+  { ok = true, status = 200 }: { ok?: boolean; status?: number } = {},
+): Promise<Response> {
   return Promise.resolve({
     ok,
     status,
     json: () => Promise.resolve(body),
-  });
+  } as Response);
 }
 
 describe('App', () => {
-  let fetchMock;
+  let fetchMock: Mock<typeof fetch>;
 
   beforeEach(() => {
-    fetchMock = vi.fn();
+    fetchMock = vi.fn<typeof fetch>();
     vi.stubGlobal('fetch', fetchMock);
   });
 
@@ -202,9 +213,11 @@ describe('App', () => {
     const emptyFile = new File([], 'empty.txt', { type: 'text/plain' });
     await user.upload(screen.getByLabelText(/service logbook/i), emptyFile);
 
-    const submitButton = screen.getByRole('button', { name: /submit/i });
+    const submitButton = screen.getByRole<HTMLButtonElement>('button', {
+      name: /submit/i,
+    });
     expect(submitButton).toBeEnabled();
-    fireEvent.submit(submitButton.form);
+    fireEvent.submit(submitButton.form!);
 
     expect(
       await screen.findByRole('heading', { name: /submission received/i }),
@@ -242,10 +255,12 @@ describe('App', () => {
     });
     await user.upload(screen.getByLabelText(/service logbook/i), txtFile);
 
-    const submitButton = screen.getByRole('button', { name: /submit/i });
+    const submitButton = screen.getByRole<HTMLButtonElement>('button', {
+      name: /submit/i,
+    });
     expect(submitButton).toBeEnabled();
     // jsdom's native constraint validation doesn't see files set via userEvent.upload
-    fireEvent.submit(submitButton.form);
+    fireEvent.submit(submitButton.form!);
 
     expect(
       await screen.findByRole('heading', { name: /submission received/i }),
@@ -253,14 +268,17 @@ describe('App', () => {
     expect(screen.getByText(/service\.txt/i)).toBeInTheDocument();
     expect(screen.getByText(logbookContent)).toBeInTheDocument();
 
-    const [url, options] = fetchMock.mock.calls[1];
+    const secondCall = fetchMock.mock.calls[1];
+    expect(secondCall).toBeDefined();
+    const [url, options] = secondCall!;
     expect(url).toBe('/api/submissions');
-    expect(options.method).toBe('POST');
-    expect(options.body).toBeInstanceOf(FormData);
-    expect(options.body.get('make')).toBe('bmw');
-    expect(options.body.get('model')).toBe('130d');
-    expect(options.body.get('badge')).toBe('xDrive 26d');
-    expect(options.body.get('logbook')).toBe(txtFile);
+    expect(options?.method).toBe('POST');
+    expect(options?.body).toBeInstanceOf(FormData);
+    const body = options?.body as FormData;
+    expect(body.get('make')).toBe('bmw');
+    expect(body.get('model')).toBe('130d');
+    expect(body.get('badge')).toBe('xDrive 26d');
+    expect(body.get('logbook')).toBe(txtFile);
   });
 
   it('displays server error message when submission fails', async () => {
@@ -285,7 +303,10 @@ describe('App', () => {
 
     const txtFile = new File(['entry'], 'service.txt', { type: 'text/plain' });
     await user.upload(screen.getByLabelText(/service logbook/i), txtFile);
-    fireEvent.submit(screen.getByRole('button', { name: /submit/i }).form);
+    const submitButton = screen.getByRole<HTMLButtonElement>('button', {
+      name: /submit/i,
+    });
+    fireEvent.submit(submitButton.form!);
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Logbook file is too large.',

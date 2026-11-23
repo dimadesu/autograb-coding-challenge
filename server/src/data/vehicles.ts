@@ -1,3 +1,5 @@
+export type VehicleCatalog = Record<string, Record<string, readonly string[]>>;
+
 export const VEHICLES = {
   ford: {
     Ranger: ['Raptor', 'Raptor X', 'Wildtrak'],
@@ -12,15 +14,21 @@ export const VEHICLES = {
   tesla: {
     'Model 3': ['Performance', 'Long Range', 'Dual Motor'],
   },
-};
+} as const satisfies VehicleCatalog;
 
-export function isValidVehicleSelection(make, model, badge) {
+export function isValidVehicleSelection(
+  make: string,
+  model: string,
+  badge: string,
+): boolean {
   if (!make || !model || !badge) {
     return false;
   }
-  const models = Object.hasOwn(VEHICLES, make) ? VEHICLES[make] : null;
+  const catalog: VehicleCatalog = VEHICLES;
+  const models = Object.hasOwn(catalog, make) ? catalog[make] : undefined;
   if (!models || !Object.hasOwn(models, model)) {
     return false;
   }
-  return models[model].includes(badge);
+  const badges = models[model];
+  return badges ? badges.includes(badge) : false;
 }

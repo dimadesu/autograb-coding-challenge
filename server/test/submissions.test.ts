@@ -1,21 +1,30 @@
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import app from '../src/app.js';
-import { VEHICLES } from '../src/data/vehicles.js';
+import type { Server } from 'node:http';
+import type { AddressInfo } from 'node:net';
+import app from '../src/app.ts';
+import { VEHICLES } from '../src/data/vehicles.ts';
+import type { SubmissionResponse } from '../src/routes/submissions.ts';
+
+interface ErrorResponse {
+  error: string;
+}
 
 describe('API endpoints', () => {
-  let server;
-  let baseUrl;
+  let server: Server;
+  let baseUrl: string;
 
   before(async () => {
     server = app.listen(0);
-    await new Promise((resolve) => server.once('listening', resolve));
-    const { port } = server.address();
-    baseUrl = `http://127.0.0.1:${port}`;
+    await new Promise<void>((resolve) => server.once('listening', resolve));
+    const address = server.address() as AddressInfo;
+    baseUrl = `http://127.0.0.1:${address.port}`;
   });
 
   after(async () => {
-    await new Promise((resolve) => server.close(resolve));
+    await new Promise<void>((resolve, reject) =>
+      server.close((err) => (err ? reject(err) : resolve())),
+    );
   });
 
   it('GET /api/health returns ok', async () => {
@@ -40,7 +49,7 @@ describe('API endpoints', () => {
     });
 
     assert.equal(res.status, 400);
-    const body = await res.json();
+    const body = (await res.json()) as ErrorResponse;
     assert.ok(body.error);
   });
 
@@ -61,7 +70,7 @@ describe('API endpoints', () => {
     });
 
     assert.equal(res.status, 400);
-    const body = await res.json();
+    const body = (await res.json()) as ErrorResponse;
     assert.match(body.error, /invalid make, model, and badge/i);
   });
 
@@ -82,7 +91,7 @@ describe('API endpoints', () => {
     });
 
     assert.equal(res.status, 400);
-    const body = await res.json();
+    const body = (await res.json()) as ErrorResponse;
     assert.match(body.error, /plain text/i);
   });
 
@@ -105,7 +114,7 @@ describe('API endpoints', () => {
     });
 
     assert.equal(res.status, 200);
-    const body = await res.json();
+    const body = (await res.json()) as SubmissionResponse;
     assert.equal(body.make, 'ford');
     assert.equal(body.model, 'Ranger');
     assert.equal(body.badge, 'Raptor');
@@ -131,7 +140,7 @@ describe('API endpoints', () => {
       });
 
       assert.equal(res.status, 200);
-      const body = await res.json();
+      const body = (await res.json()) as SubmissionResponse;
       assert.equal(body.logbook.fileName, fileName);
       assert.equal(body.logbook.content, 'Service entry');
     }
@@ -157,7 +166,7 @@ describe('API endpoints', () => {
     });
 
     assert.equal(res.status, 400);
-    const body = await res.json();
+    const body = (await res.json()) as ErrorResponse;
     assert.match(body.error, /valid utf-8 plain text/i);
   });
 
@@ -174,7 +183,7 @@ describe('API endpoints', () => {
     });
 
     assert.equal(res.status, 200);
-    const body = await res.json();
+    const body = (await res.json()) as SubmissionResponse;
     assert.equal(body.logbook.size, 0);
     assert.equal(body.logbook.content, '');
   });
@@ -197,7 +206,7 @@ describe('API endpoints', () => {
     });
 
     assert.equal(res.status, 400);
-    const body = await res.json();
+    const body = (await res.json()) as ErrorResponse;
     assert.match(body.error, /file too large/i);
   });
 
@@ -219,7 +228,7 @@ describe('API endpoints', () => {
     });
 
     assert.equal(res.status, 400);
-    const body = await res.json();
+    const body = (await res.json()) as ErrorResponse;
     assert.ok(body.error);
   });
 });

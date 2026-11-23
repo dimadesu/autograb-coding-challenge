@@ -2,15 +2,15 @@
 
 ## Tech
 
-- Front-end: React, Vite.
-- Back-end: Node.js, Express + Multer.
+- Front-end: React, Vite, TypeScript.
+- Back-end: Node.js, Express + Multer, TypeScript.
 - Single Git repository using separate `client/` and `server/` packages.
 - Run scripts to control both from the root folder.
 
 ## Structure
 
-- `client/` — React + Vite UI (proxies `/api` requests to `http://localhost:3001` in both dev and preview)
-- `server/` — Pure Express API (`GET /api/health`, `GET /api/vehicles`, `POST /api/submissions` with `multer` for plain-text logbook uploads)
+- `client/` — React + Vite + TypeScript UI (proxies `/api` requests to `http://localhost:3001` in both dev and preview)
+- `server/` — Pure Express + TypeScript API (`GET /api/health`, `GET /api/vehicles`, `POST /api/submissions` with `multer` for plain-text logbook uploads)
 
 ## Getting Started
 

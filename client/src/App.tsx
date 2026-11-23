@@ -1,6 +1,30 @@
-import { useEffect, useRef, useState } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from 'react';
 
-const MAKE_LABELS = {
+type VehicleCatalog = Record<string, Record<string, string[]>>;
+
+interface SubmissionResult {
+  make: string;
+  model: string;
+  badge: string;
+  logbook: {
+    fileName: string;
+    mimeType?: string;
+    size: number;
+    content: string;
+  };
+}
+
+interface ErrorPayload {
+  error?: string;
+}
+
+const MAKE_LABELS: Record<string, string> = {
   ford: 'Ford',
   bmw: 'BMW',
   tesla: 'Tesla',
@@ -10,7 +34,7 @@ const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_TEXT_EXTENSIONS = new Set(['.txt', '.log', '.md', '.csv', '']);
 const GENERIC_MIME_TYPES = new Set(['', 'application/octet-stream']);
 
-function getFileExtension(fileName) {
+function getFileExtension(fileName: string): string {
   const lastDot = fileName.lastIndexOf('.');
   if (lastDot <= 0) {
     return '';
@@ -18,7 +42,7 @@ function getFileExtension(fileName) {
   return fileName.slice(lastDot).toLowerCase();
 }
 
-function isAllowedPlainTextFile(file) {
+function isAllowedPlainTextFile(file: File): boolean {
   const mime = (file.type || '').toLowerCase();
   if (mime.startsWith('text/')) {
     return true;
@@ -27,29 +51,32 @@ function isAllowedPlainTextFile(file) {
   return GENERIC_MIME_TYPES.has(mime) && ALLOWED_TEXT_EXTENSIONS.has(ext);
 }
 
-function formatMake(make) {
-  if (Object.hasOwn(MAKE_LABELS, make)) {
-    return MAKE_LABELS[make];
+function formatMake(make: string): string {
+  const label = Object.hasOwn(MAKE_LABELS, make)
+    ? MAKE_LABELS[make]
+    : undefined;
+  if (label !== undefined) {
+    return label;
   }
   return make.charAt(0).toUpperCase() + make.slice(1);
 }
 
 export default function App() {
-  const [vehicles, setVehicles] = useState(null);
+  const [vehicles, setVehicles] = useState<VehicleCatalog | null>(null);
   const [loadingVehicles, setLoadingVehicles] = useState(true);
-  const [loadError, setLoadError] = useState(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [reloadTick, setReloadTick] = useState(0);
 
   const [make, setMake] = useState('');
   const [model, setModel] = useState('');
   const [badge, setBadge] = useState('');
-  const [logbookFile, setLogbookFile] = useState(null);
+  const [logbookFile, setLogbookFile] = useState<File | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState(null);
-  const [result, setResult] = useState(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [result, setResult] = useState<SubmissionResult | null>(null);
 
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -64,12 +91,17 @@ export default function App() {
         if (!response.ok) {
           throw new Error(`Failed to load vehicles (${response.status})`);
         }
-        const data = await response.json();
+        const data = (await response.json()) as VehicleCatalog;
         setVehicles(data);
-      } catch (err) {
-        if (err.name !== 'AbortError') {
-          setLoadError(err.message || 'Unable to load vehicle options.');
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name === 'AbortError') {
+          return;
         }
+        setLoadError(
+          err instanceof Error && err.message
+            ? err.message
+            : 'Unable to load vehicle options.',
+        );
       } finally {
         if (!controller.signal.aborted) {
           setLoadingVehicles(false);
@@ -77,7 +109,7 @@ export default function App() {
       }
     }
 
-    fetchVehicles();
+    void fetchVehicles();
     return () => controller.abort();
   }, [reloadTick]);
 
@@ -93,7 +125,7 @@ export default function App() {
     }
   }
 
-  function handleMakeChange(event) {
+  function handleMakeChange(event: ChangeEvent<HTMLSelectElement>) {
     setMake(event.target.value);
     setModel('');
     setBadge('');
@@ -102,7 +134,7 @@ export default function App() {
     setResult(null);
   }
 
-  function handleModelChange(event) {
+  function handleModelChange(event: ChangeEvent<HTMLSelectElement>) {
     setModel(event.target.value);
     setBadge('');
     clearFileSelection();
@@ -110,7 +142,7 @@ export default function App() {
     setResult(null);
   }
 
-  function handleBadgeChange(event) {
+  function handleBadgeChange(event: ChangeEvent<HTMLSelectElement>) {
     const nextBadge = event.target.value;
     setBadge(nextBadge);
     if (!nextBadge) {
@@ -120,7 +152,7 @@ export default function App() {
     setResult(null);
   }
 
-  function handleFileChange(event) {
+  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0] ?? null;
     setSubmitError(null);
     setResult(null);
@@ -141,7 +173,7 @@ export default function App() {
     setLogbookFile(selected);
   }
 
-  async function handleSubmit(event) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitError(null);
     setResult(null);
@@ -168,13 +200,13 @@ export default function App() {
         method: 'POST',
         body: formData,
       });
-      const data = await response.json();
+      const data = (await response.json()) as SubmissionResult & ErrorPayload;
       if (!response.ok) {
         throw new Error(data.error || 'Submission failed.');
       }
       setResult(data);
-    } catch (err) {
-      setSubmitError(err.message);
+    } catch (err: unknown) {
+      setSubmitError(err instanceof Error ? err.message : 'Submission failed.');
     } finally {
       setSubmitting(false);
     }
