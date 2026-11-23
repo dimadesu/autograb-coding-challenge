@@ -26,7 +26,6 @@ export function LogbookUpload({
         <input
           ref={fileInputRef}
           type="file"
-          accept="text/plain,.txt,.log"
           onChange={handleChange}
           required
         />

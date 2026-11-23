@@ -1,22 +1,9 @@
 export const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
-const ALLOWED_TEXT_EXTENSIONS = new Set(['.txt', '.log', '.md', '.csv', '']);
 const GENERIC_MIME_TYPES = new Set(['', 'application/octet-stream']);
-
-export function getFileExtension(fileName: string): string {
-  const lastDot = fileName.lastIndexOf('.');
-  if (lastDot <= 0) {
-    return '';
-  }
-  return fileName.slice(lastDot).toLowerCase();
-}
 
 export function isAllowedPlainTextFile(file: File): boolean {
   const mime = (file.type || '').toLowerCase();
-  if (mime.startsWith('text/')) {
-    return true;
-  }
-  const ext = getFileExtension(file.name);
-  return GENERIC_MIME_TYPES.has(mime) && ALLOWED_TEXT_EXTENSIONS.has(ext);
+  return mime.startsWith('text/') || GENERIC_MIME_TYPES.has(mime);
 }
 
 export function validateLogbookFile(file: File): string | null {

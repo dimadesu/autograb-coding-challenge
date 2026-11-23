@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import multer from 'multer';
-import path from 'node:path';
 import { z } from 'zod';
 import { vehicleRepository } from '../repositories/vehicles.ts';
 
@@ -29,19 +28,12 @@ export interface SubmissionResponse {
 const router = Router();
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
-const ALLOWED_TEXT_EXTENSIONS = new Set(['.txt', '.log', '.md', '.csv', '']);
 const GENERIC_MIME_TYPES = new Set(['', 'application/octet-stream']);
 const utf8Decoder = new TextDecoder('utf-8', { fatal: true });
 
 function isAllowedPlainTextUpload(file: Express.Multer.File): boolean {
-  const ext = path.extname(file.originalname).toLowerCase();
   const mime = (file.mimetype || '').toLowerCase();
-
-  if (mime.startsWith('text/')) {
-    return true;
-  }
-
-  return GENERIC_MIME_TYPES.has(mime) && ALLOWED_TEXT_EXTENSIONS.has(ext);
+  return mime.startsWith('text/') || GENERIC_MIME_TYPES.has(mime);
 }
 
 function decodePlainTextBuffer(buffer: Buffer): string | null {

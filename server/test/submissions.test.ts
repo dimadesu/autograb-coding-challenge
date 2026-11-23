@@ -157,8 +157,8 @@ describe('API endpoints', () => {
     assert.equal(body.logbook.content, logbookText);
   });
 
-  it('POST /api/submissions accepts plain text files with .log or no extension', async () => {
-    for (const fileName of ['service.log', 'logbook']) {
+  it('POST /api/submissions accepts plain text files with uncommon or no extensions', async () => {
+    for (const fileName of ['service.log', 'service.notes', 'logbook']) {
       const form = new FormData();
       form.append('make', 'ford');
       form.append('model', 'Ranger');

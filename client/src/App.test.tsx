@@ -199,7 +199,7 @@ describe('App', () => {
   });
 
   it('rejects non-plain-text logbook files and keeps submit disabled', async () => {
-    const user = userEvent.setup({ applyAccept: false });
+    const user = userEvent.setup();
     fetchMock.mockReturnValueOnce(jsonResponse(MOCK_VEHICLES));
 
     render(<App />);
@@ -209,6 +209,7 @@ describe('App', () => {
     await user.selectOptions(screen.getByLabelText(/badge/i), 'Raptor');
 
     const fileInput = screen.getByLabelText(/service logbook/i);
+    expect(fileInput).not.toHaveAttribute('accept');
     const pdfFile = new File(['%PDF-1.4'], 'logbook.pdf', {
       type: 'application/pdf',
     });
@@ -221,8 +222,8 @@ describe('App', () => {
     expect(screen.getByRole('button', { name: /submit/i })).toBeDisabled();
   });
 
-  it('accepts plain-text files with .log or no extension and empty MIME type', async () => {
-    const user = userEvent.setup({ applyAccept: false });
+  it('accepts plain-text files with any extension and empty MIME type', async () => {
+    const user = userEvent.setup();
     fetchMock.mockReturnValueOnce(jsonResponse(MOCK_VEHICLES));
 
     render(<App />);
@@ -232,9 +233,11 @@ describe('App', () => {
     await user.selectOptions(screen.getByLabelText(/badge/i), 'Raptor');
 
     const fileInput = screen.getByLabelText(/service logbook/i);
-    const logFile = new File(['Service entry'], 'service.log', { type: '' });
+    const notesFile = new File(['Service entry'], 'service.notes', {
+      type: '',
+    });
 
-    await user.upload(fileInput, logFile);
+    await user.upload(fileInput, notesFile);
 
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /submit/i })).toBeEnabled();
