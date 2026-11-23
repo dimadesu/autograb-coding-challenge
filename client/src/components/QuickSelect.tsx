@@ -6,14 +6,14 @@ import './QuickSelect.css';
 interface QuickSelectProps {
   presets: readonly VehiclePreset[];
   selected: VehicleSelection;
-  disabled?: boolean;
+  disabled: boolean;
   onSelect: (preset: VehiclePreset) => void;
 }
 
 export function QuickSelect({
   presets,
   selected,
-  disabled = false,
+  disabled,
   onSelect,
 }: QuickSelectProps) {
   if (presets.length === 0) {

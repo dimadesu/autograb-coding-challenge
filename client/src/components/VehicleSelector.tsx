@@ -12,7 +12,7 @@ interface SelectFieldProps {
   value: string;
   placeholder: string;
   options: SelectOption[];
-  disabled?: boolean;
+  disabled: boolean;
   onChange: (value: string) => void;
 }
 
@@ -21,7 +21,7 @@ function SelectField({
   value,
   placeholder,
   options,
-  disabled = false,
+  disabled,
   onChange,
 }: SelectFieldProps) {
   function handleChange(event: ChangeEvent<HTMLSelectElement>) {
@@ -55,7 +55,7 @@ interface VehicleSelectorProps {
   make: string;
   model: string;
   badge: string;
-  disabled?: boolean;
+  disabled: boolean;
   onMakeChange: (make: string) => void;
   onModelChange: (model: string) => void;
   onBadgeChange: (badge: string) => void;
@@ -68,7 +68,7 @@ export function VehicleSelector({
   make,
   model,
   badge,
-  disabled = false,
+  disabled,
   onMakeChange,
   onModelChange,
   onBadgeChange,
