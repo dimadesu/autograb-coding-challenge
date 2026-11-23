@@ -1,9 +1,31 @@
-import type {
-  ErrorPayload,
-  SubmissionResultData,
-  VehicleCatalogResponse,
-  VehicleSelection,
-} from './types.ts';
+export type VehicleCatalog = Record<string, Record<string, string[]>>;
+
+export interface VehicleSelection {
+  make: string;
+  model: string;
+  badge: string;
+}
+
+export interface VehicleCatalogResponse {
+  catalog: VehicleCatalog;
+  commonVehicles: VehicleSelection[];
+}
+
+export interface SubmissionResultData {
+  make: string;
+  model: string;
+  badge: string;
+  logbook: {
+    fileName: string;
+    mimeType?: string;
+    size: number;
+    content: string;
+  };
+}
+
+interface ErrorPayload {
+  error?: string;
+}
 
 export async function fetchVehicleCatalog(
   signal?: AbortSignal,

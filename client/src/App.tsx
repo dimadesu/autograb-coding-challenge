@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
-import { fetchVehicleCatalog } from './api.ts';
+import {
+  fetchVehicleCatalog,
+  type SubmissionResultData,
+  type VehicleCatalogResponse,
+} from './api.ts';
 import { ErrorAlert } from './components/ErrorAlert.tsx';
 import { SubmissionResult } from './components/SubmissionResult.tsx';
 import { VehicleLogbookForm } from './components/VehicleLogbookForm.tsx';
-import type { SubmissionResultData, VehicleCatalogResponse } from './types.ts';
 
 export default function App() {
   const [catalogData, setCatalogData] = useState<VehicleCatalogResponse | null>(

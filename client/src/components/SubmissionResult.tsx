@@ -1,4 +1,4 @@
-import type { SubmissionResultData } from '../types.ts';
+import type { SubmissionResultData } from '../api.ts';
 import { formatMake } from '../utils/formatMake.ts';
 import './SubmissionResult.css';
 

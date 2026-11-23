@@ -1,13 +1,13 @@
-import type { VehiclePreset, VehicleSelection } from '../types.ts';
+import type { VehicleSelection } from '../api.ts';
 import { formatMake } from '../utils/formatMake.ts';
 import { Button } from './Button.tsx';
 import './QuickSelect.css';
 
 interface QuickSelectProps {
-  presets: readonly VehiclePreset[];
+  presets: readonly VehicleSelection[];
   selected: VehicleSelection;
   disabled: boolean;
-  onSelect: (preset: VehiclePreset) => void;
+  onSelect: (preset: VehicleSelection) => void;
 }
 
 export function QuickSelect({

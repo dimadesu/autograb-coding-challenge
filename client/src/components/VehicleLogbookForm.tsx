@@ -1,10 +1,10 @@
 import { useRef, useState, type FormEvent } from 'react';
-import { submitLogbook } from '../api.ts';
-import type {
-  SubmissionResultData,
-  VehicleCatalog,
-  VehiclePreset,
-} from '../types.ts';
+import {
+  submitLogbook,
+  type SubmissionResultData,
+  type VehicleCatalog,
+  type VehicleSelection,
+} from '../api.ts';
 import { ErrorAlert } from './ErrorAlert.tsx';
 import { LogbookUpload } from './LogbookUpload.tsx';
 import { QuickSelect } from './QuickSelect.tsx';
@@ -27,7 +27,7 @@ function validateLogbookFile(file: File): string | null {
 
 interface VehicleLogbookFormProps {
   vehicles: VehicleCatalog;
-  commonVehicles: readonly VehiclePreset[];
+  commonVehicles: readonly VehicleSelection[];
   onResultChange: (result: SubmissionResultData | null) => void;
 }
 
@@ -58,7 +58,7 @@ export function VehicleLogbookForm({
     }
   }
 
-  function handleQuickSelect(preset: VehiclePreset) {
+  function handleQuickSelect(preset: VehicleSelection) {
     const isSameVehicle =
       make === preset.make && model === preset.model && badge === preset.badge;
     if (!isSameVehicle) {
