@@ -6,15 +6,13 @@ export const COMMON_VEHICLES: readonly VehiclePreset[] = [
   { make: 'bmw', model: '130d', badge: 'xDrive 26d' },
 ];
 
-const MAKE_LABELS: Record<string, string> = {
-  ford: 'Ford',
+const MAKE_LABEL_OVERRIDES: Record<string, string> = {
   bmw: 'BMW',
-  tesla: 'Tesla',
 };
 
 export function formatMake(make: string): string {
-  const label = Object.hasOwn(MAKE_LABELS, make)
-    ? MAKE_LABELS[make]
+  const label = Object.hasOwn(MAKE_LABEL_OVERRIDES, make)
+    ? MAKE_LABEL_OVERRIDES[make]
     : undefined;
   if (label !== undefined) {
     return label;
