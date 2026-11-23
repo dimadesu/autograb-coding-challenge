@@ -17,21 +17,55 @@ export interface VehicleRepository {
   ): Promise<boolean>;
 }
 
+interface LoadedCatalog {
+  catalog: VehicleCatalog;
+  index: Map<string, Map<string, Set<string>>>;
+}
+
 const VEHICLES_DATA_URL = new URL('../../data/vehicles.json', import.meta.url);
 
-async function loadCatalog(): Promise<VehicleCatalog> {
-  const raw = await readFile(VEHICLES_DATA_URL, 'utf-8');
-  return vehicleCatalogSchema.parse(JSON.parse(raw));
+let catalogPromise: Promise<LoadedCatalog> | undefined;
+
+function buildIndex(
+  catalog: VehicleCatalog,
+): Map<string, Map<string, Set<string>>> {
+  return new Map(
+    Object.entries(catalog).map(([make, models]) => [
+      make,
+      new Map(
+        Object.entries(models).map(([model, badges]) => [
+          model,
+          new Set(badges),
+        ]),
+      ),
+    ]),
+  );
+}
+
+function loadCatalog(): Promise<LoadedCatalog> {
+  if (!catalogPromise) {
+    catalogPromise = readFile(VEHICLES_DATA_URL, 'utf-8')
+      .then((raw) => {
+        const catalog = vehicleCatalogSchema.parse(JSON.parse(raw));
+        return { catalog, index: buildIndex(catalog) };
+      })
+      .catch((err: unknown) => {
+        catalogPromise = undefined;
+        throw err;
+      });
+  }
+  return catalogPromise;
 }
 
 /**
  * JSON-backed implementation of VehicleRepository.
- * Reads and parses server/data/vehicles.json on demand,
- * keeping routes decoupled from the underlying data source (e.g. a database).
+ * Lazily reads, parses, and caches server/data/vehicles.json with a Map/Set
+ * lookup index, keeping routes decoupled from the underlying data source.
  */
 export const vehicleRepository: VehicleRepository = {
-  getCatalog(): Promise<VehicleCatalog> {
-    return loadCatalog();
+  async getCatalog(): Promise<VehicleCatalog> {
+    const { catalog } = await loadCatalog();
+    return catalog;
   },
 
   async isValidSelection(
@@ -39,15 +73,7 @@ export const vehicleRepository: VehicleRepository = {
     model: string,
     badge: string,
   ): Promise<boolean> {
-    if (!make || !model || !badge) {
-      return false;
-    }
-    const catalog = await loadCatalog();
-    const models = Object.hasOwn(catalog, make) ? catalog[make] : undefined;
-    if (!models || !Object.hasOwn(models, model)) {
-      return false;
-    }
-    const badges = models[model];
-    return badges ? badges.includes(badge) : false;
+    const { index } = await loadCatalog();
+    return index.get(make)?.get(model)?.has(badge) ?? false;
   },
 };

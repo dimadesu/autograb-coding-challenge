@@ -80,6 +80,27 @@ describe('API endpoints', () => {
     assert.match(body.error, /invalid make, model, and badge/i);
   });
 
+  it('POST /api/submissions rejects prototype-key vehicle fields', async () => {
+    const form = new FormData();
+    form.append('make', 'toString');
+    form.append('model', 'name');
+    form.append('badge', 'to');
+    form.append(
+      'logbook',
+      new Blob(['Service entry 1'], { type: 'text/plain' }),
+      'logbook.txt',
+    );
+
+    const res = await fetch(`${baseUrl}/api/submissions`, {
+      method: 'POST',
+      body: form,
+    });
+
+    assert.equal(res.status, 400);
+    const body = (await res.json()) as ErrorResponse;
+    assert.match(body.error, /invalid make, model, and badge/i);
+  });
+
   it('POST /api/submissions rejects non-plain-text files', async () => {
     const form = new FormData();
     form.append('make', 'ford');
