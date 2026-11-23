@@ -1,13 +1,7 @@
 import express from 'express';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import multer from 'multer';
 import vehiclesRouter from './routes/vehicles.js';
 import submissionsRouter from './routes/submissions.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -19,18 +13,6 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/api/vehicles', vehiclesRouter);
 app.use('/api/submissions', submissionsRouter);
-
-// Serve built React frontend in production if present
-const clientDistDir = path.resolve(__dirname, '../../client/dist');
-if (fs.existsSync(clientDistDir)) {
-  app.use(express.static(clientDistDir));
-  app.get('/{*splat}', (req, res, next) => {
-    if (req.path.startsWith('/api')) {
-      return next();
-    }
-    res.sendFile(path.join(clientDistDir, 'index.html'));
-  });
-}
 
 // Centralized error handler (including multer upload errors)
 app.use((err, _req, res, _next) => {
